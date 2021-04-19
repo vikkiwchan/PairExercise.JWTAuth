@@ -26,8 +26,7 @@ app.get('/api/auth', async (req, res, next) => {
 
 app.get('/api/users/:id/notes', async (req, res, next) => {
   try {
-    const notes = await Note.findAll({ where: { userId: req.params.id } });
-    res.send(notes);
+    res.send(await Note.byToken(req.headers.authorization, req.params.id));
   } catch (ex) {
     next(ex);
   }

@@ -70,6 +70,35 @@ const Note = conn.define('note', {
   text: STRING,
 });
 
+Note.byToken = async (token, reqId) => {
+  try {
+    const { id } = jwt.verify(token, process.env.JWT);
+    // console.log('-----> id', id);
+    // console.log('-----> paramsId', reqId);
+    if (id === +reqId) {
+      const notes = await Note.findAll({ where: { userId: id } });
+      return notes;
+    }
+    const error = Error('unauthorized access');
+    error.status = 401;
+    throw error;
+  } catch (ex) {
+    const error = Error('unauthorized access');
+    error.status = 401;
+    throw error;
+  }
+};
+
+// Note.byToken = async function(token) {
+//   try {
+//     const {id} = jwt.verify(token, process.env.JWT);
+//     const user = await Note.findByPk(id);
+//   }
+//   catch(ex){
+
+//   }
+// }
+
 User.hasMany(Note);
 Note.belongsTo(User);
 
