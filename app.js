@@ -6,6 +6,18 @@ const {
 } = require('./db');
 const path = require('path');
 
+//review how this middleware function works
+const requireToken = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization;
+    const user = await User.byToken(token);
+    req.user = user;
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 app.post('/api/auth', async (req, res, next) => {
@@ -16,17 +28,17 @@ app.post('/api/auth', async (req, res, next) => {
   }
 });
 
-app.get('/api/auth', async (req, res, next) => {
+app.get('/api/auth', requireToken, async (req, res, next) => {
   try {
-    res.send(await User.byToken(req.headers.authorization));
+    res.send(req.user);
   } catch (ex) {
     next(ex);
   }
 });
 
-app.get('/api/users/:id/notes', async (req, res, next) => {
+app.get('/api/users/:id/notes', requireToken, async (req, res, next) => {
   try {
-    res.send(await Note.byToken(req.headers.authorization, req.params.id));
+    res.send(await Note.byToken(req.user, req.params.id));
   } catch (ex) {
     next(ex);
   }
