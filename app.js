@@ -6,13 +6,14 @@ const {
 } = require('./db');
 const path = require('path');
 
-//review how this middleware function works
+// review how this middleware function works
+// return is not used here bc the function keeps running and will be used as a callback
 const requireToken = async (req, res, next) => {
   try {
-    const token = req.headers.authorization;
-    const user = await User.byToken(token);
-    req.user = user;
-    next();
+    const token = req.headers.authorization; // checks if there is a header
+    const user = await User.byToken(token); // tried to find user on header --- token is your user, with hashing involved
+    req.user = user; // if user exists, add user to request
+    next(); // prevents an infinite loop and allows request to move onto the next function
   } catch (error) {
     next(error);
   }
@@ -28,6 +29,8 @@ app.post('/api/auth', async (req, res, next) => {
   }
 });
 
+// you can add additional functions before the request reaches responds to the client
+// app.get('/api/auth', isAdmin, isLoggedIn, requireToken, async (req, res, next) => { ...
 app.get('/api/auth', requireToken, async (req, res, next) => {
   try {
     res.send(req.user);
